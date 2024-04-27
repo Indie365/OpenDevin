@@ -1,7 +1,3 @@
-import { Spinner } from "@nextui-org/react";
-import i18next from "i18next";
-import React from "react";
-import { useTranslation } from "react-i18next";
 import { fetchAgents, fetchModels } from "#/api";
 import { AvailableLanguages } from "#/i18n";
 import { I18nKey } from "#/i18n/declaration";
@@ -12,7 +8,14 @@ import {
   getSettingsDifference,
   saveSettings,
 } from "#/services/settings";
+import {
+  fetchWorkspaceDirs
+} from "#/services/settingsService";
 import toast from "#/utils/toast";
+import { Spinner } from "@nextui-org/react";
+import i18next from "i18next";
+import React from "react";
+import { useTranslation } from "react-i18next";
 import BaseModal from "../base-modal/BaseModal";
 import SettingsForm from "./SettingsForm";
 
@@ -28,6 +31,9 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
   const [models, setModels] = React.useState<string[]>([]);
   const [agents, setAgents] = React.useState<string[]>([]);
   const [settings, setSettings] = React.useState<Settings>(currentSettings);
+  const [workspaceDirs, setWorkspaceDirs] = React.useState<WorkspaceDirs>({workspaceBase: "", directories: []});
+
+  React.useState<Partial<Settings>>(currentSettings);
 
   const [loading, setLoading] = React.useState(true);
 
@@ -36,6 +42,8 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
       try {
         setModels(await fetchModels());
         setAgents(await fetchAgents());
+        const resp = await fetchWorkspaceDirs()
+        setWorkspaceDirs({workspaceBase: resp.workspace_base, directories: resp.directories});
       } catch (error) {
         console.error(error);
       } finally {
@@ -56,6 +64,10 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
 
   const handleAgentChange = (agent: string) => {
     setSettings((prev) => ({ ...prev, AGENT: agent }));
+  };
+
+  const handleWorkspaceChange = (workspace: string) => {
+    setSettings((prev) => ({ ...prev, WORKSPACE: workspace }));
   };
 
   const handleLanguageChange = (language: string) => {
@@ -129,10 +141,12 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
           settings={settings}
           models={models}
           agents={agents}
+          workspaceDirs={workspaceDirs}
           onModelChange={handleModelChange}
           onAgentChange={handleAgentChange}
           onLanguageChange={handleLanguageChange}
           onAPIKeyChange={handleAPIKeyChange}
+          onWorkspaceChange={handleWorkspaceChange}
         />
       )}
     </BaseModal>

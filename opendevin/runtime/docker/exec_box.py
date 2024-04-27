@@ -48,6 +48,7 @@ class DockerExecBox(Sandbox):
     def __init__(
         self,
         container_image: str | None = None,
+        workspace_mount_path=config.get(ConfigType.WORKSPACE_MOUNT_PATH),
         timeout: int = 120,
         sid: str | None = None,
     ):
@@ -62,7 +63,7 @@ class DockerExecBox(Sandbox):
             raise ex
 
         self.instance_id = sid if sid is not None else str(uuid.uuid4())
-
+        self.workspace_mount_path = workspace_mount_path
         # TODO: this timeout is actually essential - need a better way to set it
         # if it is too short, the container may still waiting for previous
         # command to finish (e.g. apt-get update)
@@ -240,7 +241,7 @@ class DockerExecBox(Sandbox):
 
         try:
             # start the container
-            mount_dir = config.get(ConfigType.WORKSPACE_MOUNT_PATH)
+            mount_dir = self.workspace_mount_path
             self.container = self.docker_client.containers.run(
                 self.container_image,
                 command='tail -f /dev/null',
