@@ -98,10 +98,8 @@ function FileExplorer({ onFileClick }: FileExplorerProps) {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const getWorkspaceData = async () => {
-    console.log("MMMM!");
     const wsFile = await getWorkspace();
     setWorkspace(removeEmptyNodes(wsFile));
-    console.log("NNNN!");
   };
 
   const selectFileInput = () => {
