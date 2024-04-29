@@ -59,6 +59,7 @@ class AgentController:
         max_iterations: int = MAX_ITERATIONS,
         max_chars: int = MAX_CHARS,
         callbacks: List[Callable] = [],
+        workspace: str | None = None,
     ):
         """Initializes a new instance of the AgentController class.
 
@@ -72,7 +73,8 @@ class AgentController:
         self.id = sid
         self.agent = agent
         self.max_iterations = max_iterations
-        self.action_manager = ActionManager(self.id)
+        self.workspace = workspace
+        self.action_manager = ActionManager(self.id, workspace)
         self.max_chars = max_chars
         self.callbacks = callbacks
         # Initialize agent-required plugins for sandbox (if any)
@@ -247,6 +249,7 @@ class AgentController:
             max_iterations=self.max_iterations,
             max_chars=self.max_chars,
             callbacks=self.callbacks,
+            workspace=self.workspace,
         )
         task = action.inputs.get('task') or ''
         await self.delegate.setup_task(task, action.inputs)

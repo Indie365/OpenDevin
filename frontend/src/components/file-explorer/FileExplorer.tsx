@@ -1,20 +1,22 @@
-import React from "react";
-import {
-  IoIosArrowBack,
-  IoIosArrowForward,
-  IoIosRefresh,
-  IoIosCloudUpload,
-} from "react-icons/io";
-import { twMerge } from "tailwind-merge";
 import {
   WorkspaceFile,
   getWorkspace,
   uploadFile,
 } from "#/services/fileService";
+import { RootState } from "#/store";
+import toast from "#/utils/toast";
+import React from "react";
+import {
+  IoIosArrowBack,
+  IoIosArrowForward,
+  IoIosCloudUpload,
+  IoIosRefresh,
+} from "react-icons/io";
+import { useSelector } from "react-redux";
+import { twMerge } from "tailwind-merge";
 import IconButton from "../IconButton";
 import ExplorerTree from "./ExplorerTree";
 import { removeEmptyNodes } from "./utils";
-import toast from "#/utils/toast";
 
 interface ExplorerActionsProps {
   onRefresh: () => void;
@@ -90,13 +92,16 @@ interface FileExplorerProps {
 }
 
 function FileExplorer({ onFileClick }: FileExplorerProps) {
+  const settings = useSelector((state: RootState) => state.settings);
   const [workspace, setWorkspace] = React.useState<WorkspaceFile>();
   const [isHidden, setIsHidden] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const getWorkspaceData = async () => {
+    console.log("MMMM!");
     const wsFile = await getWorkspace();
     setWorkspace(removeEmptyNodes(wsFile));
+    console.log("NNNN!");
   };
 
   const selectFileInput = () => {
@@ -119,7 +124,7 @@ function FileExplorer({ onFileClick }: FileExplorerProps) {
     (async () => {
       await getWorkspaceData();
     })();
-  }, []);
+  }, [settings]);
 
   return (
     <div

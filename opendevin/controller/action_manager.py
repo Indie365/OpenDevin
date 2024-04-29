@@ -27,8 +27,11 @@ class ActionManager:
     def __init__(
         self,
         sid: str = 'default',
+        workspace: str | None = None,
     ):
         sandbox_type = config.get(ConfigType.SANDBOX_TYPE).lower()
+        if workspace:
+            pass  # TODO change
         if sandbox_type == 'exec':
             self.sandbox = DockerExecBox(
                 sid=(sid or 'default'), timeout=config.get(ConfigType.SANDBOX_TIMEOUT)

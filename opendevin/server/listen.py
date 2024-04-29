@@ -115,20 +115,31 @@ async def del_messages(
 
 
 @app.get('/api/refresh-files')
-def refresh_files():
-    structure = files.get_folder_structure(
-        Path(str(config.get(ConfigType.WORKSPACE_BASE)))
-    )
+def refresh_files(workspace=config.get(ConfigType.WORKSPACE_BASE)):
+    structure = files.get_folder_structure(Path(str(config.get(workspace))))
     return structure.to_dict()
 
 
+@app.get('/api/workspace-dirs')
+def get_workspace_dirs():
+    workspace_base = config.get(ConfigType.WORKSPACE_BASE)
+
+    return {
+        'workspace_base': workspace_base,
+        'directories': sorted(
+            [d.name for d in files.get_subdirectories(Path(workspace_base))]
+        ),
+    }
+
+
 @app.get('/api/select-file')
-def select_file(file: str):
+def select_file(file: str, workspace: str = config.get(ConfigType.WORKSPACE_BASE)):
     try:
-        workspace_base = config.get(ConfigType.WORKSPACE_BASE)
-        file_path = Path(workspace_base, file)
+        file_path = Path(workspace, file)
         # The following will check if the file is within the workspace base and throw an exception if not
-        file_path.resolve().relative_to(Path(workspace_base).resolve())
+        file_path.resolve().relative_to(
+            Path(config.get(ConfigType.WORKSPACE_BASE)).resolve()
+        )
         with open(file_path, 'r') as selected_file:
             content = selected_file.read()
     except Exception as e:
