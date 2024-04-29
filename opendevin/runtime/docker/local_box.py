@@ -29,14 +29,15 @@ from opendevin.runtime.sandbox import Sandbox
 class LocalBox(Sandbox):
     def __init__(
         self,
-        workspace: str = config.get(ConfigType.WORKSPACE_BASE),
+        workspace: str | None = None,
         timeout: int = 120,
     ):
-        os.makedirs(workspace, exist_ok=True)
+        self.workspace = workspace or config.get(ConfigType.WORKSPACE_BASE)
+        os.makedirs(self.workspace, exist_ok=True)
         self.timeout = timeout
         self.background_commands: Dict[int, Process] = {}
         self.cur_background_id = 0
-        self.workspace = workspace
+
         atexit.register(self.cleanup)
 
     def execute(self, cmd: str) -> Tuple[int, str]:

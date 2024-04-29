@@ -1,13 +1,13 @@
+import { fetchAgents, fetchModels, fetchWorkspaceDirs } from "#/api";
+import { initializeAgent } from "#/services/agent";
+import { Settings, getSettings, saveSettings } from "#/services/settings";
+import toast from "#/utils/toast";
 import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import i18next from "i18next";
 import React from "react";
 import { renderWithProviders } from "test-utils";
 import { Mock } from "vitest";
-import toast from "#/utils/toast";
-import { Settings, getSettings, saveSettings } from "#/services/settings";
-import { initializeAgent } from "#/services/agent";
-import { fetchAgents, fetchModels } from "#/api";
 import SettingsModal from "./SettingsModal";
 
 const toastSpy = vi.spyOn(toast, "settingsChanged");
@@ -35,6 +35,9 @@ vi.mock("#/api", async (importOriginal) => ({
   fetchAgents: vi
     .fn()
     .mockResolvedValue(Promise.resolve(["agent1", "agent2", "agent3"])),
+  fetchWorkspaceDirs: vi
+    .fn()
+    .mockResolvedValue(Promise.resolve({workspace_base: "/home/opendevin/workspace", directories: ["dir1", "dir2"]})),
 }));
 
 describe("SettingsModal", () => {
@@ -48,6 +51,7 @@ describe("SettingsModal", () => {
     await waitFor(() => {
       expect(fetchModels).toHaveBeenCalledTimes(1);
       expect(fetchAgents).toHaveBeenCalledTimes(1);
+      expect(fetchWorkspaceDirs).toHaveBeenCalled();
     });
   });
 
@@ -69,12 +73,45 @@ describe("SettingsModal", () => {
   });
 
   it("should disable the save button if the settings are the same as the initial settings", async () => {
+    const onOpenChangeMock = vi.fn();
     await act(async () =>
       renderWithProviders(<SettingsModal isOpen onOpenChange={vi.fn()} />),
     );
 
     const saveButton = screen.getByRole("button", { name: /save/i });
 
+    const modelInput = screen.getByRole("combobox", { name: "model" });
+
+    const workspaceInput = screen.getByRole("combobox", { name: "workspace" });
+    act(() => {
+      userEvent.click(modelInput);
+    });
+
+    const model3 = screen.getByText("model3");
+
+    act(() => {
+      userEvent.click(model3);
+    });
+
+
+    act(() => {
+      userEvent.click(workspaceInput);
+    });
+
+    const dir2 = screen.getByText("dir2");
+    act(() => {
+      userEvent.click(dir2);
+    });
+
+    act(() => {
+      userEvent.click(saveButton);
+    });
+
+    expect(saveSettings).toHaveBeenCalledWith({
+      LLM_MODEL: "model3",
+      WORKSPACE: "/home/opendevin/workspace/dir2",
+    });
+    expect(onOpenChangeMock).toHaveBeenCalledWith(false);
     expect(saveButton).toBeDisabled();
   });
 

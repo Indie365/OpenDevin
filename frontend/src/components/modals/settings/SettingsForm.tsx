@@ -111,7 +111,7 @@ function SettingsForm({
         defaultKey={settings.WORKSPACE || workspaceDirs.workspaceBase}
         onChange={onWorkspaceChange}
         tooltip={t(I18nKey.SETTINGS$WORKSPACE_TOOLTIP)}
-        allowCustomValue // user can type in a custom LLM model that is not in the list
+        allowCustomValue
         disabled={disabled}
       />
     </>

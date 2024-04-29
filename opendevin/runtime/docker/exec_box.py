@@ -48,7 +48,7 @@ class DockerExecBox(Sandbox):
     def __init__(
         self,
         container_image: str | None = None,
-        workspace_mount_path=config.get(ConfigType.WORKSPACE_MOUNT_PATH),
+        workspace_mount_path: str | None = None,
         timeout: int = 120,
         sid: str | None = None,
     ):
@@ -63,7 +63,9 @@ class DockerExecBox(Sandbox):
             raise ex
 
         self.instance_id = sid if sid is not None else str(uuid.uuid4())
-        self.workspace_mount_path = workspace_mount_path
+        self.workspace_mount_path = workspace_mount_path or config.get(
+            ConfigType.WORKSPACE_MOUNT_PATH
+        )
         # TODO: this timeout is actually essential - need a better way to set it
         # if it is too short, the container may still waiting for previous
         # command to finish (e.g. apt-get update)

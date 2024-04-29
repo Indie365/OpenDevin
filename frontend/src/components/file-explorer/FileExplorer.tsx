@@ -92,7 +92,7 @@ interface FileExplorerProps {
 }
 
 function FileExplorer({ onFileClick }: FileExplorerProps) {
-  const settings = useSelector((state: RootState) => state.settings);
+  const { settings } = useSelector((state: RootState) => state.settings);
   const [workspace, setWorkspace] = React.useState<WorkspaceFile>();
   const [isHidden, setIsHidden] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);

@@ -162,7 +162,7 @@ class AgentUnit:
                 max_iterations=int(max_iterations),
                 max_chars=int(max_chars),
                 callbacks=[self.on_agent_event],
-                workspace=args.get('WORKSPACE'),
+                workspace=str(args.get('WORKSPACE')),
             )
         except Exception as e:
             logger.exception(f'Error creating controller: {e}')
