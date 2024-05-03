@@ -1,5 +1,5 @@
 import asyncio
-from typing import Callable, List, Type
+from typing import Callable, List, Optional, Type
 
 from agenthub.codeact_agent.codeact_agent import CodeActAgent
 from opendevin.controller.action_manager import ActionManager
@@ -31,7 +31,7 @@ from opendevin.events.observation import (
     Observation,
     UserMessageObservation,
 )
-from opendevin.runtime import DockerSSHBox
+from opendevin.runtime import DockerSSHBox, Sandbox
 from opendevin.runtime.browser.browser_env import BrowserEnv
 
 MAX_ITERATIONS = config.get(ConfigType.MAX_ITERATIONS)
@@ -59,6 +59,8 @@ class AgentController:
         max_iterations: int = MAX_ITERATIONS,
         max_chars: int = MAX_CHARS,
         callbacks: List[Callable] = [],
+        fake_user_response_fn: Optional[Callable[[Optional[State]], str]] = None,
+        sandbox: Optional[Sandbox] = None,
     ):
         """Initializes a new instance of the AgentController class.
 
@@ -68,13 +70,16 @@ class AgentController:
             max_iterations: The maximum number of iterations the agent can run.
             max_chars: The maximum number of characters the agent can output.
             callbacks: A list of callback functions to run after each action.
+            fake_user_response_fn: A optional function that receives the current state (could be None) and returns a fake user response.
+            sandbox: An optional initialized sandbox to run the agent in. If not provided, a default sandbox will be created based on config.
         """
         self.id = sid
         self.agent = agent
         self.max_iterations = max_iterations
-        self.action_manager = ActionManager(self.id)
+        self.action_manager = ActionManager(self.id, sandbox=sandbox)
         self.max_chars = max_chars
         self.callbacks = callbacks
+        self.fake_user_response_fn = fake_user_response_fn
         # Initialize agent-required plugins for sandbox (if any)
         self.action_manager.init_sandbox_plugins(agent.sandbox_plugins)
         # Initialize browser environment
@@ -114,9 +119,9 @@ class AgentController:
         self.state.history.append((action, observation))
         self.state.updated_info.append((action, observation))
 
-    async def _run(self):
+    async def _run(self) -> Optional[State]:
         if self.state is None:
-            return
+            return None
 
         if self._task_state != TaskState.RUNNING:
             raise ValueError('Task is not in running state')
@@ -139,8 +144,9 @@ class AgentController:
 
             if self._task_state == TaskState.FINISHED:
                 logger.info('Task finished by agent')
+                finished_state = self.state
                 await self.reset_task()
-                break
+                return finished_state
             elif self._task_state == TaskState.STOPPED:
                 logger.info('Task stopped by user')
                 await self.reset_task()
@@ -159,6 +165,7 @@ class AgentController:
                 await self._run_callbacks(observation)
                 await self.set_task_state_to(TaskState.STOPPED)
                 break
+        return self.state
 
     async def setup_task(self, task: str, inputs: dict = {}):
         """Sets up the agent controller with a task."""
@@ -167,12 +174,13 @@ class AgentController:
         self.state = State(Plan(task))
         self.state.inputs = inputs
 
-    async def start(self, task: str):
+    async def start(self, task: str) -> Optional[State]:
         """Starts the agent controller with a task.
         If task already run before, it will continue from the last step.
         """
         await self.setup_task(task)
-        await self._run()
+        finished_state = await self._run()
+        return finished_state
 
     async def resume(self):
         if self.state is None:
@@ -226,7 +234,10 @@ class AgentController:
         self._task_state = TaskState.AWAITING_USER_INPUT
         await self.notify_task_state_changed()
         # wait for the next user message
-        if len(self.callbacks) == 0:
+        if self.fake_user_response_fn:
+            message = self.fake_user_response_fn(self.state)
+            user_message_observation = UserMessageObservation(message)
+        elif len(self.callbacks) == 0:
             logger.info(
                 'Use STDIN to request user message as no callbacks are registered',
                 extra={'msg_type': 'INFO'},
