@@ -78,7 +78,9 @@ class DockerSSHBox(Sandbox):
             )
             raise ex
 
-        self.instance_id = sid if sid is not None else str(uuid.uuid4())
+        self.instance_id = (
+            sid + str(uuid.uuid4()) if sid is not None else str(uuid.uuid4())
+        )
 
         self.workspace_mount_path = workspace_mount_path
         # TODO: this timeout is actually essential - need a better way to set it

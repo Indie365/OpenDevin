@@ -62,7 +62,9 @@ class DockerExecBox(Sandbox):
             )
             raise ex
 
-        self.instance_id = sid if sid is not None else str(uuid.uuid4())
+        self.instance_id = (
+            sid + str(uuid.uuid4()) if sid is not None else str(uuid.uuid4())
+        )
         self.workspace_mount_path = workspace_mount_path or config.get(
             ConfigType.WORKSPACE_MOUNT_PATH
         )
