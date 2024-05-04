@@ -16,12 +16,13 @@ const PLACEHOLDERS: Record<Label, I18nKey> = {
   model: I18nKey.CONFIGURATION$MODEL_SELECT_PLACEHOLDER,
   agent: I18nKey.CONFIGURATION$AGENT_SELECT_PLACEHOLDER,
   language: I18nKey.CONFIGURATION$LANGUAGE_SELECT_PLACEHOLDER,
-  workspace: I18nKey.CONFIGURATION$OPENDEVIN_WORKSPACE_DIRECTORY_SELECT_PLACEHOLDER,
+  workspace:
+    I18nKey.CONFIGURATION$OPENDEVIN_WORKSPACE_DIRECTORY_SELECT_PLACEHOLDER,
 };
 
 type AutocompleteItemType = {
   value: string;
-  label: any;
+  label: string;
 };
 
 interface AutocompleteComboboxProps {
@@ -72,7 +73,12 @@ export function AutocompleteCombobox({
         }}
       >
         {(item) => (
-          <AutocompleteItem key={item.value} textValue={typeof item.label === "string" ? item.label : item.value}>{item.label}</AutocompleteItem>
+          <AutocompleteItem
+            key={item.value}
+            textValue={typeof item.label === "string" ? item.label : item.value}
+          >
+            {item.label}
+          </AutocompleteItem>
         )}
       </Autocomplete>
     </Tooltip>

@@ -1,11 +1,11 @@
-import { getWorkspace, uploadFile } from "#/services/fileService";
-import toast from "#/utils/toast";
 import { render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { default as React } from "react";
+import React from "react";
 import { act } from "react-dom/test-utils";
 import { renderWithProviders } from "test-utils";
 import { Mock, describe, expect, it, vi } from "vitest";
+import toast from "#/utils/toast";
+import { getWorkspace, uploadFile } from "#/services/fileService";
 import FileExplorer from "./FileExplorer";
 
 const toastSpy = vi.spyOn(toast, "stickyError");
@@ -28,7 +28,9 @@ describe("FileExplorer", () => {
   });
 
   it("should get the workspace directory", async () => {
-    const { getByText } = renderWithProviders(<FileExplorer onFileClick={vi.fn} />);
+    const { getByText } = renderWithProviders(
+      <FileExplorer onFileClick={vi.fn} />,
+    );
 
     expect(getWorkspace).toHaveBeenCalledTimes(1);
     await waitFor(() => {
@@ -61,7 +63,9 @@ describe("FileExplorer", () => {
   });
 
   it("should refetch the workspace when clicking the refresh button", () => {
-    const { getByTestId } = renderWithProviders(<FileExplorer onFileClick={vi.fn} />);
+    const { getByTestId } = renderWithProviders(
+      <FileExplorer onFileClick={vi.fn} />,
+    );
 
     act(() => {
       userEvent.click(getByTestId("refresh"));

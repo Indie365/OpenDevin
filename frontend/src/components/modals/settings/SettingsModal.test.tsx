@@ -1,13 +1,13 @@
-import { fetchAgents, fetchModels, fetchWorkspaceDirs } from "#/api";
-import { initializeAgent } from "#/services/agent";
-import { Settings, getSettings, saveSettings } from "#/services/settings";
-import toast from "#/utils/toast";
 import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import i18next from "i18next";
 import React from "react";
 import { renderWithProviders } from "test-utils";
 import { Mock } from "vitest";
+import toast from "#/utils/toast";
+import { Settings, getSettings, saveSettings } from "#/services/settings";
+import { initializeAgent } from "#/services/agent";
+import { fetchAgents, fetchModels, fetchWorkspaceDirs } from "#/api";
 import SettingsModal from "./SettingsModal";
 
 const toastSpy = vi.spyOn(toast, "settingsChanged");
@@ -35,9 +35,12 @@ vi.mock("#/api", async (importOriginal) => ({
   fetchAgents: vi
     .fn()
     .mockResolvedValue(Promise.resolve(["agent1", "agent2", "agent3"])),
-  fetchWorkspaceDirs: vi
-    .fn()
-    .mockResolvedValue(Promise.resolve({workspace_base: "/home/opendevin/workspace", directories: ["dir1", "dir2"]})),
+  fetchWorkspaceDirs: vi.fn().mockResolvedValue(
+    Promise.resolve({
+      workspace_base: "/home/opendevin/workspace",
+      directories: ["dir1", "dir2"],
+    }),
+  ),
 }));
 
 describe("SettingsModal", () => {
@@ -93,7 +96,6 @@ describe("SettingsModal", () => {
       userEvent.click(model3);
     });
 
-
     act(() => {
       userEvent.click(workspaceInput);
     });
@@ -136,6 +138,7 @@ describe("SettingsModal", () => {
       AGENT: "MonologueAgent",
       LANGUAGE: "en",
       LLM_API_KEY: "sk-...",
+      WORKSPACE: "./workspace",
     };
 
     it("should save the settings", async () => {

@@ -10,6 +10,11 @@ import AgentTaskState from "../../../types/AgentTaskState";
 import { AutocompleteCombobox } from "./AutocompleteCombobox";
 import { Settings } from "#/services/settings";
 
+export type WorkspaceDirs = {
+  workspaceBase: string;
+  directories: string[];
+};
+
 interface SettingsFormProps {
   settings: Settings;
   models: string[];
@@ -107,7 +112,16 @@ function SettingsForm({
       />
       <AutocompleteCombobox
         ariaLabel="workspace"
-        items={[{value:workspaceDirs.workspaceBase,label: workspaceDirs.workspaceBase}, ...workspaceDirs.directories.map(d=>({label: <><span className="text-slate-500">{workspaceDirs.workspaceBase}/</span>{d}</>, value: `${workspaceDirs.workspaceBase}/${d}`}))]}
+        items={[
+          {
+            value: workspaceDirs.workspaceBase,
+            label: workspaceDirs.workspaceBase,
+          },
+          ...workspaceDirs.directories.map((d) => ({
+            label: d,
+            value: d,
+          })),
+        ]}
         defaultKey={settings.WORKSPACE || workspaceDirs.workspaceBase}
         onChange={onWorkspaceChange}
         tooltip={t(I18nKey.SETTINGS$WORKSPACE_TOOLTIP)}
