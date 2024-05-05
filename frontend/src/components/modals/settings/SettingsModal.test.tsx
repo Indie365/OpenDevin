@@ -7,7 +7,7 @@ import { Mock } from "vitest";
 import toast from "#/utils/toast";
 import { Settings, getSettings, saveSettings } from "#/services/settings";
 import { initializeAgent } from "#/services/agent";
-import { fetchAgents, fetchModels } from "#/api";
+import { fetchAgents, fetchModels, fetchWorkspaceDirs } from "#/api";
 import SettingsModal from "./SettingsModal";
 
 const toastSpy = vi.spyOn(toast, "settingsChanged");
@@ -19,6 +19,7 @@ vi.mock("#/services/settings", async (importOriginal) => ({
     LLM_MODEL: "gpt-3.5-turbo",
     AGENT: "MonologueAgent",
     LANGUAGE: "en",
+    WORKSPACE: "dir2",
   }),
   saveSettings: vi.fn(),
 }));
@@ -35,6 +36,12 @@ vi.mock("#/api", async (importOriginal) => ({
   fetchAgents: vi
     .fn()
     .mockResolvedValue(Promise.resolve(["agent1", "agent2", "agent3"])),
+  fetchWorkspaceDirs: vi.fn().mockResolvedValue(
+    Promise.resolve({
+      workspace_base: "/home/opendevin/workspace",
+      directories: ["dir1", "dir2"],
+    }),
+  ),
 }));
 
 describe("SettingsModal", () => {
@@ -48,6 +55,7 @@ describe("SettingsModal", () => {
     await waitFor(() => {
       expect(fetchModels).toHaveBeenCalledTimes(1);
       expect(fetchAgents).toHaveBeenCalledTimes(1);
+      expect(fetchWorkspaceDirs).toHaveBeenCalled();
     });
   });
 
@@ -99,6 +107,7 @@ describe("SettingsModal", () => {
       AGENT: "MonologueAgent",
       LANGUAGE: "en",
       LLM_API_KEY: "sk-...",
+      WORKSPACE: "dir2",
     };
 
     it("should save the settings", async () => {

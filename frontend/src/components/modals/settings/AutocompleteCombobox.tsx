@@ -3,18 +3,21 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { I18nKey } from "#/i18n/declaration";
 
-type Label = "model" | "agent" | "language";
+type Label = "model" | "agent" | "language" | "workspace";
 
 const LABELS: Record<Label, I18nKey> = {
   model: I18nKey.CONFIGURATION$MODEL_SELECT_LABEL,
   agent: I18nKey.CONFIGURATION$AGENT_SELECT_LABEL,
   language: I18nKey.CONFIGURATION$LANGUAGE_SELECT_LABEL,
+  workspace: I18nKey.CONFIGURATION$OPENDEVIN_WORKSPACE_DIRECTORY_SELECT_LABEL,
 };
 
 const PLACEHOLDERS: Record<Label, I18nKey> = {
   model: I18nKey.CONFIGURATION$MODEL_SELECT_PLACEHOLDER,
   agent: I18nKey.CONFIGURATION$AGENT_SELECT_PLACEHOLDER,
   language: I18nKey.CONFIGURATION$LANGUAGE_SELECT_PLACEHOLDER,
+  workspace:
+    I18nKey.CONFIGURATION$OPENDEVIN_WORKSPACE_DIRECTORY_SELECT_PLACEHOLDER,
 };
 
 type AutocompleteItemType = {
@@ -70,7 +73,12 @@ export function AutocompleteCombobox({
         }}
       >
         {(item) => (
-          <AutocompleteItem key={item.value}>{item.label}</AutocompleteItem>
+          <AutocompleteItem
+            key={item.value}
+            textValue={typeof item.label === "string" ? item.label : item.value}
+          >
+            {item.label}
+          </AutocompleteItem>
         )}
       </Autocomplete>
     </Tooltip>

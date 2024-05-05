@@ -2,7 +2,7 @@ import { Spinner } from "@nextui-org/react";
 import i18next from "i18next";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { fetchAgents, fetchModels } from "#/api";
+import { fetchAgents, fetchModels, fetchWorkspaceDirs } from "#/api";
 import { AvailableLanguages } from "#/i18n";
 import { I18nKey } from "#/i18n/declaration";
 import { initializeAgent } from "#/services/agent";
@@ -14,7 +14,7 @@ import {
 } from "#/services/settings";
 import toast from "#/utils/toast";
 import BaseModal from "../base-modal/BaseModal";
-import SettingsForm from "./SettingsForm";
+import SettingsForm, { WorkspaceDirs } from "./SettingsForm";
 
 interface SettingsProps {
   isOpen: boolean;
@@ -28,6 +28,12 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
   const [models, setModels] = React.useState<string[]>([]);
   const [agents, setAgents] = React.useState<string[]>([]);
   const [settings, setSettings] = React.useState<Settings>(currentSettings);
+  const [workspaceDirs, setWorkspaceDirs] = React.useState<WorkspaceDirs>({
+    workspaceBase: "",
+    directories: [],
+  });
+
+  React.useState<Partial<Settings>>(currentSettings);
 
   const [loading, setLoading] = React.useState(true);
 
@@ -36,6 +42,11 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
       try {
         setModels(await fetchModels());
         setAgents(await fetchAgents());
+        const resp = await fetchWorkspaceDirs();
+        setWorkspaceDirs({
+          workspaceBase: resp.workspace_base,
+          directories: resp.directories,
+        });
       } catch (error) {
         console.error(error);
       } finally {
@@ -58,6 +69,10 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
     setSettings((prev) => ({ ...prev, AGENT: agent }));
   };
 
+  const handleWorkspaceChange = (workspace: string) => {
+    setSettings((prev) => ({ ...prev, WORKSPACE: workspace }));
+  };
+
   const handleLanguageChange = (language: string) => {
     const key = AvailableLanguages.find(
       (lang) => lang.label === language,
@@ -71,7 +86,7 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
   };
 
   const handleSaveSettings = () => {
-    const updatedSettings = getSettingsDifference(settings);
+    const updatedSettings = getSettingsDifference(getSettings(), settings);
     saveSettings(settings);
     i18next.changeLanguage(settings.LANGUAGE);
     initializeAgent(settings); // reinitialize the agent with the new settings
@@ -129,10 +144,12 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
           settings={settings}
           models={models}
           agents={agents}
+          workspaceDirs={workspaceDirs}
           onModelChange={handleModelChange}
           onAgentChange={handleAgentChange}
           onLanguageChange={handleLanguageChange}
           onAPIKeyChange={handleAPIKeyChange}
+          onWorkspaceChange={handleWorkspaceChange}
         />
       )}
     </BaseModal>

@@ -10,25 +10,34 @@ import AgentTaskState from "../../../types/AgentTaskState";
 import { AutocompleteCombobox } from "./AutocompleteCombobox";
 import { Settings } from "#/services/settings";
 
+export type WorkspaceDirs = {
+  workspaceBase: string;
+  directories: string[];
+};
+
 interface SettingsFormProps {
   settings: Settings;
   models: string[];
   agents: string[];
+  workspaceDirs: WorkspaceDirs;
 
   onModelChange: (model: string) => void;
   onAPIKeyChange: (apiKey: string) => void;
   onAgentChange: (agent: string) => void;
   onLanguageChange: (language: string) => void;
+  onWorkspaceChange: (workspace: string) => void;
 }
 
 function SettingsForm({
   settings,
   models,
   agents,
+  workspaceDirs,
   onModelChange,
   onAPIKeyChange,
   onAgentChange,
   onLanguageChange,
+  onWorkspaceChange,
 }: SettingsFormProps) {
   const { t } = useTranslation();
   const { curTaskState } = useSelector((state: RootState) => state.agent);
@@ -99,6 +108,24 @@ function SettingsForm({
         defaultKey={settings.LANGUAGE || "en"}
         onChange={onLanguageChange}
         tooltip={t(I18nKey.SETTINGS$LANGUAGE_TOOLTIP)}
+        disabled={disabled}
+      />
+      <AutocompleteCombobox
+        ariaLabel="workspace"
+        items={[
+          {
+            value: workspaceDirs.workspaceBase,
+            label: workspaceDirs.workspaceBase,
+          },
+          ...workspaceDirs.directories.map((d) => ({
+            label: d,
+            value: d,
+          })),
+        ]}
+        defaultKey={settings.WORKSPACE || workspaceDirs.workspaceBase}
+        onChange={onWorkspaceChange}
+        tooltip={t(I18nKey.SETTINGS$WORKSPACE_TOOLTIP)}
+        allowCustomValue
         disabled={disabled}
       />
     </>

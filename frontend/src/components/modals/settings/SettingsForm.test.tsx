@@ -10,6 +10,7 @@ const onModelChangeMock = vi.fn();
 const onAgentChangeMock = vi.fn();
 const onLanguageChangeMock = vi.fn();
 const onAPIKeyChangeMock = vi.fn();
+const onWorkspaceChangeMock = vi.fn();
 
 const renderSettingsForm = (settings?: Settings) => {
   renderWithProviders(
@@ -20,14 +21,20 @@ const renderSettingsForm = (settings?: Settings) => {
           AGENT: "agent1",
           LANGUAGE: "en",
           LLM_API_KEY: "sk-...",
+          WORKSPACE: "my_workspace",
         }
       }
       models={["model1", "model2", "model3"]}
       agents={["agent1", "agent2", "agent3"]}
+      workspaceDirs={{
+        workspaceBase: "/home/devin/workspace",
+        directories: ["frontend", "backend"],
+      }}
       onModelChange={onModelChangeMock}
       onAgentChange={onAgentChangeMock}
       onLanguageChange={onLanguageChangeMock}
       onAPIKeyChange={onAPIKeyChangeMock}
+      onWorkspaceChange={onWorkspaceChangeMock}
     />,
   );
 };
@@ -53,6 +60,7 @@ describe("SettingsForm", () => {
       AGENT: "agent2",
       LANGUAGE: "es",
       LLM_API_KEY: "sk-...",
+      WORKSPACE: "",
     });
 
     const modelInput = screen.getByRole("combobox", { name: "model" });
@@ -72,13 +80,19 @@ describe("SettingsForm", () => {
           AGENT: "agent1",
           LANGUAGE: "en",
           LLM_API_KEY: "sk-...",
+          WORKSPACE: "my_workspace",
         }}
         models={["model1", "model2", "model3"]}
         agents={["agent1", "agent2", "agent3"]}
+        workspaceDirs={{
+          workspaceBase: "/home/devin/workspace",
+          directories: ["frontend", "backend"],
+        }}
         onModelChange={onModelChangeMock}
         onAgentChange={onAgentChangeMock}
         onLanguageChange={onLanguageChangeMock}
         onAPIKeyChange={onAPIKeyChangeMock}
+        onWorkspaceChange={onWorkspaceChangeMock}
       />,
       { preloadedState: { agent: { curTaskState: AgentTaskState.RUNNING } } },
     );

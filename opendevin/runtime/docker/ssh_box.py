@@ -62,6 +62,7 @@ class DockerSSHBox(Sandbox):
     def __init__(
         self,
         container_image: str | None = None,
+        workspace_mount_path: str | None = config.get(ConfigType.WORKSPACE_MOUNT_PATH),
         timeout: int = 120,
         sid: str | None = None,
     ):
@@ -78,8 +79,11 @@ class DockerSSHBox(Sandbox):
             )
             raise ex
 
-        self.instance_id = sid + str(uuid.uuid4()) if sid is not None else str(uuid.uuid4())
+        self.instance_id = (
+            sid + str(uuid.uuid4()) if sid is not None else str(uuid.uuid4())
+        )
 
+        self.workspace_mount_path = workspace_mount_path
         # TODO: this timeout is actually essential - need a better way to set it
         # if it is too short, the container may still waiting for previous
         # command to finish (e.g. apt-get update)
@@ -388,7 +392,7 @@ class DockerSSHBox(Sandbox):
                     )
                 )
 
-            mount_dir = config.get(ConfigType.WORKSPACE_MOUNT_PATH)
+            mount_dir = self.workspace_mount_path
             logger.info(f'Mounting workspace directory: {mount_dir}')
             # start the container
             self.container = self.docker_client.containers.run(

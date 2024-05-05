@@ -1,4 +1,5 @@
 import asyncio
+from pathlib import Path
 from typing import Callable, List, Type
 
 from agenthub.codeact_agent.codeact_agent import CodeActAgent
@@ -59,6 +60,7 @@ class AgentController:
         max_iterations: int = MAX_ITERATIONS,
         max_chars: int = MAX_CHARS,
         callbacks: List[Callable] = [],
+        workspace_subdirectory: str | None = None,
     ):
         """Initializes a new instance of the AgentController class.
 
@@ -72,7 +74,11 @@ class AgentController:
         self.id = sid
         self.agent = agent
         self.max_iterations = max_iterations
-        self.action_manager = ActionManager(self.id)
+        self.workspace_subdirectory = workspace_subdirectory
+        self.workspace = str(
+            Path(config.get(ConfigType.WORKSPACE_BASE), workspace_subdirectory or '')
+        )
+        self.action_manager = ActionManager(self.id, self.workspace)
         self.max_chars = max_chars
         self.callbacks = callbacks
         # Initialize agent-required plugins for sandbox (if any)
@@ -247,6 +253,7 @@ class AgentController:
             max_iterations=self.max_iterations,
             max_chars=self.max_chars,
             callbacks=self.callbacks,
+            workspace_subdirectory=self.workspace_subdirectory,
         )
         task = action.inputs.get('task') or ''
         await self.delegate.setup_task(task, action.inputs)

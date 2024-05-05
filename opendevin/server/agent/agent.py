@@ -153,7 +153,7 @@ class AgentUnit:
         api_base = config.get(ConfigType.LLM_BASE_URL)
         max_iterations = self.get_arg_or_default(args, ConfigType.MAX_ITERATIONS)
         max_chars = self.get_arg_or_default(args, ConfigType.MAX_CHARS)
-
+        # TODO check that given workspace is under base workspace
         logger.info(f'Creating agent {agent_cls} using LLM {model}')
         llm = LLM(model=model, api_key=api_key, base_url=api_base)
         try:
@@ -163,6 +163,7 @@ class AgentUnit:
                 max_iterations=int(max_iterations),
                 max_chars=int(max_chars),
                 callbacks=[self.on_agent_event],
+                workspace_subdirectory=str(args.get('WORKSPACE')),
             )
         except Exception as e:
             logger.exception(f'Error creating controller: {e}')

@@ -27,11 +27,17 @@ from opendevin.runtime.sandbox import Sandbox
 
 
 class LocalBox(Sandbox):
-    def __init__(self, timeout: int = 120):
-        os.makedirs(config.get(ConfigType.WORKSPACE_BASE), exist_ok=True)
+    def __init__(
+        self,
+        workspace: str | None = None,
+        timeout: int = 120,
+    ):
+        self.workspace = workspace or config.get(ConfigType.WORKSPACE_BASE)
+        os.makedirs(self.workspace, exist_ok=True)
         self.timeout = timeout
         self.background_commands: Dict[int, Process] = {}
         self.cur_background_id = 0
+
         atexit.register(self.cleanup)
 
     def execute(self, cmd: str) -> Tuple[int, str]:
@@ -42,7 +48,7 @@ class LocalBox(Sandbox):
                 text=True,
                 capture_output=True,
                 timeout=self.timeout,
-                cwd=config.get(ConfigType.WORKSPACE_BASE),
+                cwd=self.workspace,
             )
             return completed_process.returncode, completed_process.stdout.strip()
         except subprocess.TimeoutExpired:
@@ -54,7 +60,7 @@ class LocalBox(Sandbox):
             f'mkdir -p {sandbox_dest}',
             shell=True,
             text=True,
-            cwd=config.get(ConfigType.WORKSPACE_BASE),
+            cwd=self.workspace,
         )
         if res.returncode != 0:
             raise RuntimeError(f'Failed to create directory {sandbox_dest} in sandbox')
@@ -64,7 +70,7 @@ class LocalBox(Sandbox):
                 f'cp -r {host_src} {sandbox_dest}',
                 shell=True,
                 text=True,
-                cwd=config.get(ConfigType.WORKSPACE_BASE),
+                cwd=self.workspace,
             )
             if res.returncode != 0:
                 raise RuntimeError(
@@ -75,7 +81,7 @@ class LocalBox(Sandbox):
                 f'cp {host_src} {sandbox_dest}',
                 shell=True,
                 text=True,
-                cwd=config.get(ConfigType.WORKSPACE_BASE),
+                cwd=self.workspace,
             )
             if res.returncode != 0:
                 raise RuntimeError(
@@ -89,7 +95,7 @@ class LocalBox(Sandbox):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            cwd=config.get(ConfigType.WORKSPACE_BASE),
+            cwd=self.workspace,
         )
         bg_cmd = DockerProcess(
             id=self.cur_background_id, command=cmd, result=process, pid=process.pid

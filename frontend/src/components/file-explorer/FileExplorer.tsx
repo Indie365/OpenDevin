@@ -2,10 +2,12 @@ import React from "react";
 import {
   IoIosArrowBack,
   IoIosArrowForward,
-  IoIosRefresh,
   IoIosCloudUpload,
+  IoIosRefresh,
 } from "react-icons/io";
 import { twMerge } from "tailwind-merge";
+import { useSelector } from "react-redux";
+import toast from "#/utils/toast";
 import {
   WorkspaceFile,
   getWorkspace,
@@ -14,7 +16,7 @@ import {
 import IconButton from "../IconButton";
 import ExplorerTree from "./ExplorerTree";
 import { removeEmptyNodes } from "./utils";
-import toast from "#/utils/toast";
+import { RootState } from "#/store";
 
 interface ExplorerActionsProps {
   onRefresh: () => void;
@@ -114,12 +116,13 @@ function FileExplorer({ onFileClick }: FileExplorerProps) {
       toast.stickyError("ws", "Error uploading file");
     }
   };
+  const { initialized } = useSelector((state: RootState) => state.task);
 
   React.useEffect(() => {
     (async () => {
       await getWorkspaceData();
     })();
-  }, []);
+  }, [initialized]);
 
   return (
     <div
