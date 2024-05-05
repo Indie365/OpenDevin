@@ -16,7 +16,7 @@ from opendevin.runtime import E2BBox
 from .action import Action
 
 
-def resolve_path(file_path, working_directory):
+def resolve_path(workspace, file_path, working_directory):
     path_in_sandbox = Path(file_path)
 
     # Apply working directory
@@ -39,10 +39,7 @@ def resolve_path(file_path, working_directory):
     )
 
     # Get path relative to host
-    path_in_host_workspace = (
-        Path(config.get(ConfigType.WORKSPACE_BASE)) / path_in_workspace
-    )
-
+    path_in_host_workspace = workspace / path_in_workspace
     return path_in_host_workspace
 
 
@@ -80,7 +77,9 @@ class FileReadAction(Action):
         else:
             try:
                 whole_path = resolve_path(
-                    self.path, controller.action_manager.sandbox.get_working_directory()
+                    controller.workspace,
+                    self.path,
+                    controller.action_manager.sandbox.get_working_directory(),
                 )
                 self.start = max(self.start, 0)
                 try:
@@ -142,7 +141,9 @@ class FileWriteAction(Action):
         else:
             try:
                 whole_path = resolve_path(
-                    self.path, controller.action_manager.sandbox.get_working_directory()
+                    controller.workspace,
+                    self.path,
+                    controller.action_manager.sandbox.get_working_directory(),
                 )
                 mode = 'w' if not os.path.exists(whole_path) else 'r+'
                 try:

@@ -1,4 +1,4 @@
-import { getSettingOrDefault } from "./settingsService";
+import { getSettings } from "./settings";
 
 export type WorkspaceFile = {
   name: string;
@@ -6,7 +6,7 @@ export type WorkspaceFile = {
 };
 
 export async function selectFile(file: string): Promise<string> {
-  const workspace = getSettingOrDefault("WORKSPACE");
+  const workspace = getSettings().WORKSPACE;
   const res = await fetch(
     `/api/select-file?workspace=${workspace}&file=${file}`,
   );
@@ -34,7 +34,7 @@ export async function uploadFile(file: File) {
 }
 
 export async function getWorkspace(): Promise<WorkspaceFile> {
-  const workspace = getSettingOrDefault("WORKSPACE");
+  const workspace = getSettings().WORKSPACE;
   const res = await fetch(`/api/refresh-files?workspace=${workspace}`);
   const data = await res.json();
   return data as WorkspaceFile;

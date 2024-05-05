@@ -86,7 +86,7 @@ function SettingsModal({ isOpen, onOpenChange }: SettingsProps) {
   };
 
   const handleSaveSettings = () => {
-    const updatedSettings = getSettingsDifference(settings);
+    const updatedSettings = getSettingsDifference(getSettings(), settings);
     saveSettings(settings);
     i18next.changeLanguage(settings.LANGUAGE);
     initializeAgent(settings); // reinitialize the agent with the new settings

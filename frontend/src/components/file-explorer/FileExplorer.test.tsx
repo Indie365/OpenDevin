@@ -93,7 +93,9 @@ describe("FileExplorer", () => {
   });
 
   it("should upload a file", () => {
-    const { getByTestId } = render(<FileExplorer onFileClick={vi.fn} />);
+    const { getByTestId } = renderWithProviders(
+      <FileExplorer onFileClick={vi.fn} />,
+    );
 
     const uploadFileInput = getByTestId("file-input");
     const file = new File([""], "test");

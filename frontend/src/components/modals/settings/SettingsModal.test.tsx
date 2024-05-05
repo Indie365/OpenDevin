@@ -19,6 +19,7 @@ vi.mock("#/services/settings", async (importOriginal) => ({
     LLM_MODEL: "gpt-3.5-turbo",
     AGENT: "MonologueAgent",
     LANGUAGE: "en",
+    WORKSPACE: "dir2",
   }),
   saveSettings: vi.fn(),
 }));
@@ -76,44 +77,12 @@ describe("SettingsModal", () => {
   });
 
   it("should disable the save button if the settings are the same as the initial settings", async () => {
-    const onOpenChangeMock = vi.fn();
     await act(async () =>
       renderWithProviders(<SettingsModal isOpen onOpenChange={vi.fn()} />),
     );
 
     const saveButton = screen.getByRole("button", { name: /save/i });
 
-    const modelInput = screen.getByRole("combobox", { name: "model" });
-
-    const workspaceInput = screen.getByRole("combobox", { name: "workspace" });
-    act(() => {
-      userEvent.click(modelInput);
-    });
-
-    const model3 = screen.getByText("model3");
-
-    act(() => {
-      userEvent.click(model3);
-    });
-
-    act(() => {
-      userEvent.click(workspaceInput);
-    });
-
-    const dir2 = screen.getByText("dir2");
-    act(() => {
-      userEvent.click(dir2);
-    });
-
-    act(() => {
-      userEvent.click(saveButton);
-    });
-
-    expect(saveSettings).toHaveBeenCalledWith({
-      LLM_MODEL: "model3",
-      WORKSPACE: "/home/opendevin/workspace/dir2",
-    });
-    expect(onOpenChangeMock).toHaveBeenCalledWith(false);
     expect(saveButton).toBeDisabled();
   });
 
@@ -138,7 +107,7 @@ describe("SettingsModal", () => {
       AGENT: "MonologueAgent",
       LANGUAGE: "en",
       LLM_API_KEY: "sk-...",
-      WORKSPACE: "./workspace",
+      WORKSPACE: "dir2",
     };
 
     it("should save the settings", async () => {

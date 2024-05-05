@@ -17,6 +17,7 @@ describe("initializeAgent", () => {
       AGENT: "agent_value",
       LANGUAGE: "language_value",
       LLM_API_KEY: "sk-...",
+      WORKSPACE: "my_workspace",
     };
 
     const event = {
