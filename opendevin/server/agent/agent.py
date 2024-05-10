@@ -9,12 +9,13 @@ from opendevin.core.schema import ActionType, AgentState, ConfigType
 from opendevin.events.action import (
     ChangeAgentStateAction,
     NullAction,
-    action_from_dict,
 )
 from opendevin.events.event import Event
 from opendevin.events.observation import (
     NullObservation,
 )
+from opendevin.events.serialization.action import action_from_dict
+from opendevin.events.serialization.event import event_to_dict
 from opendevin.events.stream import EventSource, EventStream, EventStreamSubscriber
 from opendevin.llm.llm import LLM
 from opendevin.server.session import session_manager
@@ -36,7 +37,7 @@ class AgentUnit:
     def __init__(self, sid):
         """Initializes a new instance of the Session class."""
         self.sid = sid
-        self.event_stream = EventStream()
+        self.event_stream = EventStream(sid)
         self.event_stream.subscribe(EventStreamSubscriber.SERVER, self.on_event)
 
     async def send_error(self, message):
@@ -139,7 +140,7 @@ class AgentUnit:
         if isinstance(event, NullObservation):
             return
         if event.source == 'agent':
-            await self.send(event.to_dict())
+            await self.send(event_to_dict(event))
             return
 
     def close(self):
