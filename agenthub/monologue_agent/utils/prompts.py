@@ -214,3 +214,17 @@ def parse_summary_response(response: str) -> list[dict]:
     """
     parsed = json.loads(response)
     return parsed['new_monologue']
+
+
+def start_task(task: str):
+    """
+    Create a indicator at the start of a new task
+
+    Parameters:
+    - task (str): The initial goal statement provided by the user
+
+    Returns:
+    - dict: A dict of thought indicating the start a new task
+    """
+    thought = {'action': 'think', 'args': {'thought': f"Now, I start a new task: {task}"}}
+    return thought
