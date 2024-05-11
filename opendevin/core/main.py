@@ -12,6 +12,7 @@ from opendevin.events.event import Event
 from opendevin.events.observation import AgentStateChangedObservation
 from opendevin.events.stream import EventSource, EventStream, EventStreamSubscriber
 from opendevin.llm.llm import LLM
+from opendevin.runtime.server.runtime import ServerRuntime
 
 
 def read_task_from_file(file_path: str) -> str:
@@ -73,10 +74,11 @@ async def main(task_str: str = ''):
         event_stream=event_stream,
     )
 
-    await controller.setup_task(task)
+    await event_stream.add_event(MessageAction(content=task), EventSource.USER)
     await event_stream.add_event(
         ChangeAgentStateAction(agent_state=AgentState.RUNNING), EventSource.USER
     )
+    _ = ServerRuntime(event_stream=event_stream)
 
     async def on_event(event: Event):
         if isinstance(event, AgentStateChangedObservation):
