@@ -3,7 +3,6 @@ from typing import Optional, Type
 
 from agenthub.codeact_agent.codeact_agent import CodeActAgent
 from opendevin.controller.agent import Agent
-from opendevin.controller.state.plan import Plan
 from opendevin.controller.state.state import State
 from opendevin.core.config import config
 from opendevin.core.exceptions import (
@@ -60,17 +59,21 @@ class AgentController:
         sid: str = 'default',
         max_iterations: int = MAX_ITERATIONS,
         max_chars: int = MAX_CHARS,
+        inputs: dict | None = None,
     ):
         """Initializes a new instance of the AgentController class.
 
         Args:
             agent: The agent instance to control.
+            event_stream: The event stream to publish events to.
             sid: The session ID of the agent.
             max_iterations: The maximum number of iterations the agent can run.
             max_chars: The maximum number of characters the agent can output.
+            inputs: The initial inputs to the agent.
         """
         self.id = sid
         self.agent = agent
+        self.state = State(inputs=inputs or {})
         self.event_stream = event_stream
         self.event_stream.subscribe(
             EventStreamSubscriber.AGENT_CONTROLLER, self.on_event
@@ -165,18 +168,12 @@ class AgentController:
         if final_state == AgentState.RUNNING:
             await self.set_agent_state_to(AgentState.PAUSED)
 
-    async def setup_task(self, task: str, inputs: dict = {}):
-        """Sets up the agent controller with a task."""
-        await self.set_agent_state_to(AgentState.INIT)
-        self.state = State(Plan(task))
-        self.state.inputs = inputs
-
     async def on_event(self, event: Event):
         if isinstance(event, ChangeAgentStateAction):
             await self.set_agent_state_to(event.agent_state)  # type: ignore
         elif isinstance(event, MessageAction) and event.source == EventSource.USER:
             await self.add_history(event, NullObservation(''), add_to_stream=False)
-            if self.get_agent_state() == AgentState.AWAITING_USER_INPUT:
+            if self.get_agent_state() != AgentState.RUNNING:
                 await self.set_agent_state_to(AgentState.RUNNING)
 
     async def reset_task(self):
@@ -187,7 +184,9 @@ class AgentController:
         self.agent.reset()
 
     async def set_agent_state_to(self, new_state: AgentState):
-        logger.info(f'Setting agent({type(self.agent).__name__}) state from {self._agent_state} to {new_state}')
+        logger.info(
+            f'Setting agent({type(self.agent).__name__}) state from {self._agent_state} to {new_state}'
+        )
         if new_state == self._agent_state:
             return
 
@@ -201,7 +200,7 @@ class AgentController:
             self._cur_step += 1
             if self.agent_task is not None:
                 self.agent_task.cancel()
-        elif new_state == AgentState.STOPPED or new_state == AgentState.ERROR or new_state == AgentState.FINISHED:
+        elif new_state == AgentState.STOPPED or new_state == AgentState.ERROR:
             await self.reset_task()
 
         await self.event_stream.add_event(
@@ -221,9 +220,8 @@ class AgentController:
             event_stream=self.event_stream,
             max_iterations=self.max_iterations,
             max_chars=self.max_chars,
+            inputs=action.inputs,
         )
-        task = action.inputs.get('task') or ''
-        await self.delegate.setup_task(task, action.inputs)
 
     async def step(self, i: int) -> bool:
         if self.state is None:
@@ -239,8 +237,6 @@ class AgentController:
             return False
 
         logger.info(f'STEP {i}', extra={'msg_type': 'STEP'})
-        if i == 0:
-            logger.info(self.state.plan.main_goal, extra={'msg_type': 'PLAN'})
         if self.state.num_of_chars > self.max_chars:
             raise MaxCharsExceedError(self.state.num_of_chars, self.max_chars)
 
